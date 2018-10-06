@@ -58,20 +58,21 @@ int bit_test (void) {
 
 int flip (int bit) {
   //loop through the other bits for multiples
-  for (int x = 1; x < 10; x++) {
+  for (int x = 1; x < NROF_PIECES; x++) {
     //if its a multiple of the bit then flip
     if ((x+1)%(bit+1) == 0) {
-      printf("%d is multiple of %d so flip\n", x+1, bit+1);
+      //printf("%d is multiple of %d so flip\n", x+1, bit+1);
       if (BIT_IS_SET (v,x)) {
         BIT_CLEAR (v,x);
       } else {
         BIT_SET (v,x);
       }
-      printf("flipped bit: %d\n", x);
+      //printf("flipped bit: %d\n", x);
     }
   }
   //set thread to finished
   threads[pthread_self()].finished = true;
+  threads[pthread_self()].in_use = false;
 }
 
 int main (void) {
@@ -83,11 +84,11 @@ int main (void) {
     threads[i].in_use = false;
     threads[i].finished = false;
   }
-  
+
   bool bit_thread_exists = false;
 
   //for every bit starting at the second bit
-  for (int bit = 1; bit < 10; bit++) {
+  for (int bit = 1; bit < NROF_PIECES; bit++) {
 
     //iterate through all threads
     for (int i = 0; i < NROF_THREADS; i++) {
@@ -104,6 +105,7 @@ int main (void) {
           exit (EXIT_FAILURE);
         }
         printf ("Successfully created new thread at index %d\n", i);
+        threads[i].in_use = true;
         bit_thread_exists = true;
         //else check whether thread is finished, then join the thread
       } else {
