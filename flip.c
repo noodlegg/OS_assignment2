@@ -30,19 +30,15 @@
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
 static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
+uint128_t     v = 0;
 
 
-int bit_test (uint128_t v){
-  // set all bits to 1
-  v = ~0;
-  return v;
-}
 
-static void flipper(uint128_t v, int x){
+int flipper(uint128_t v, int x){
   printf ("time to set bit\n");
   int q = x;
-  for(int z=1; q<128;z++){
-    q = x*z;
+  for(int z=1; q<10;z++){
+    q = (x*z);
     if(BIT_IS_SET(v,q)){
       BIT_CLEAR(v,q);
       printf ("set the bit\n");
@@ -52,20 +48,17 @@ static void flipper(uint128_t v, int x){
       printf ("unset the bit\n");
     }
   }
+  return v;
 
 }
 
 int main (void)
 {
-  uint128_t     v;
-  bit_test(v);
-  for(int x=1;x<128;x++){
-    flipper(v,x);
+  for(int x=1;x<10;x++){
+    v = flipper(v,x);
   }
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
   //  see bit_test() how to manipulate bits in a large integer)
-
-  printf ("unset the bit\n");
   return (0);
 }
