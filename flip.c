@@ -32,28 +32,22 @@
 static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
 uint128_t v;
 
-int bit_test (void){
+int bit_test (void) {
   // set all bits to 1
   v = ~0;
   printf ("v (all 1's) : %lx%016lx\n", HI(v), LO(v));
   return v;
 }
 
-int flip (int bit)
-{
+int flip (int bit) {
   //loop through the other bits for multiples
-  for (int x = 1; x < 10; x++)
-  {
+  for (int x = 1; x < 10; x++) {
     //if its a multiple of the bit then flip
-    if ((x+1)%(bit+1) == 0)
-    {
+    if ((x+1)%(bit+1) == 0) {
       printf("%d is multiple of %d so flip\n", x+1, bit+1);
-      if (BIT_IS_SET (v,x))
-      {
+      if (BIT_IS_SET (v,x)) {
         BIT_CLEAR (v,x);
-      }
-      else
-      {
+      } else {
         BIT_SET (v,x);
       }
       printf("flipped bit: %d\n", x);
@@ -61,19 +55,15 @@ int flip (int bit)
   }
 }
 
-void printBlacks (uint128_t v)
-{
-  for (int i = 0; i < 10; i++)
-  {
-    if (BIT_IS_SET (v, i))
-    {
+void printBlacks (uint128_t v) {
+  for (int i = 0; i < 10; i++) {
+    if (BIT_IS_SET (v, i)) {
       printf("%dth bit is black (1)\n", i+1);
     }
   }
 }
 
-int main (void)
-{
+int main (void) {
   bit_test ();
 
   //create array of threads the size of the max amount of threads
@@ -81,14 +71,11 @@ int main (void)
   int thread_count = 0;
 
   //for every bit starting at the second bit
-  for (int bit = 1; bit < 10; bit++)
-  {
+  for (int bit = 1; bit < 10; bit++) {
     //create thread and check whether it has failed to do so
-    if (thread_count < 10)
-    {
+    if (thread_count < 10) {
       int creation = pthread_create (&threads[thread_count], NULL, flip, bit);
-      if (creation)
-      {
+      if (creation) {
         fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
         exit (EXIT_FAILURE);
       }
