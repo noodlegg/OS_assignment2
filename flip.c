@@ -52,11 +52,25 @@ static void flipper(uint128_t v, int x){
 
 int main (void)
 {
-  uint128_t     v;
-  bit_test;
-  for(int x=0;x<HI(v);x++){
-    flipper(v,x);
+  uint128_t v;
+  bit_test (v);
+
+
+  //iterate through every bit
+  for (int mul = 1; mul < 5; mul++)
+  {
+    for (int x=1; x<128; x++)
+    {
+      //if its a multiple for the bit then flip
+      if (x%(mul+1) == 0)
+      {
+        printf("%d is multiple of %d so flip\n", x, bit+1);
+        flip (v,x);
+      }
+    }
   }
+
+  printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
   //  see bit_test() how to manipulate bits in a large integer)
