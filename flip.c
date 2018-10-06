@@ -39,18 +39,26 @@ int bit_test (void){
   return v;
 }
 
-int flip (int x)
+int flip (int bit)
 {
-  if (BIT_IS_SET (v,x))
+  //loop through the other bits for multiples
+  for (int x = 1; x < 10; x++)
   {
-    BIT_CLEAR (v,x);
+    //if its a multiple of the bit then flip
+    if ((x+1)%(bit+1) == 0)
+    {
+      printf("%d is multiple of %d so flip\n", x+1, bit+1);
+      if (BIT_IS_SET (v,x))
+      {
+        BIT_CLEAR (v,x);
+      }
+      else
+      {
+        BIT_SET (v,x);
+      }
+      printf("flipped bit: %d\n", x);
+    }
   }
-  else
-  {
-    BIT_SET (v,x);
-  }
-  printf("flipped bit: %d\n", x);
-  return v;
 }
 
 void printBlacks (uint128_t v)
@@ -67,20 +75,21 @@ void printBlacks (uint128_t v)
 int main (void)
 {
   bit_test ();
+  pthread_t thread1;
 
   //for every bit starting at the second bit
   for (int bit = 1; bit < 10; bit++)
   {
-    //loop through the other bits for multiples
-    for (int x = 1; x < 10; x++)
+    //create thread and check whether it has failed to do so
+    int creation = pthread_create (&thread1, NULL, flip, bit);
+    if (creation)
     {
-      //if its a multiple of the bit then flip
-      if ((x+1)%(bit+1) == 0)
-      {
-        printf("%d is multiple of %d so flip\n", x+1, bit+1);
-        flip (x);
-      }
+      fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+      exit (EXIT_FAILURE);
     }
+
+    //wait till thread is complete before it continues the for loop
+    pthread_join (thread1, NULL);
   }
 
   printBlacks (v);
