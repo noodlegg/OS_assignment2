@@ -34,17 +34,17 @@ uint128_t     v = 0;
 
 
 
-void flipper(uint128_t *v, int x){
+void flipper(int x){
   printf ("time to set bit\n");
   int q = x;
   for(int z=1; q<10;z++){
     q = (x*z);
-    if(BIT_IS_SET(*v,q)){
-      BIT_CLEAR(*v,q);
+    if(BIT_IS_SET(v,q)){
+      BIT_CLEAR(v,q);
       printf ("set the bit\n");
     }
     else{
-      BIT_SET(*v,q);
+      BIT_SET(v,q);
       printf ("unset the bit\n");
     }
   }
@@ -53,16 +53,16 @@ void flipper(uint128_t *v, int x){
 int main (void)
 {
   for(int x=1;x<10;x++){
-    flipper(&v,x);
+    flipper(x);
   }
-  printer(v);
+  funclast(v);
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
   //  see bit_test() how to manipulate bits in a large integer)
   return (0);
 }
 
-void printer(v){
+void funclast(uint128_t v){
   for(int x=1;x<10;x++){
     if(BIT_IS_SET(v,x)){
       printf("%d \n",x);
