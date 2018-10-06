@@ -32,6 +32,23 @@
 static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
 uint128_t v;
 
+//structure to keep track of all threads
+typedef struct {
+  pthread_t thread_id;
+  bool finished;
+  bool in_use;
+} THREAD_CONSTRUCT;
+
+THREAD_CONSTRUCT threads[NROF_THREADS];
+
+void printBlacks (uint128_t v) {
+  for (int i = 0; i < 10; i++) {
+    if (BIT_IS_SET (v, i)) {
+      printf("%dth bit is black (1)\n", i+1);
+    }
+  }
+}
+
 int bit_test (void) {
   // set all bits to 1
   v = ~0;
@@ -53,43 +70,55 @@ int flip (int bit) {
       printf("flipped bit: %d\n", x);
     }
   }
-}
-
-void printBlacks (uint128_t v) {
-  for (int i = 0; i < 10; i++) {
-    if (BIT_IS_SET (v, i)) {
-      printf("%dth bit is black (1)\n", i+1);
-    }
-  }
+  //set thread to finished
+  threads[pthread_self()].finished = true;
 }
 
 int main (void) {
   bit_test ();
 
-  //create array of threads the size of the max amount of threads
-  pthread_t threads[NROF_THREADS];
-  int thread_count = 0;
+  //set all threads as unused
+  for (int i = 0; i < NROF_THREADS; i++) {
+    threads[i].thread_id = i;
+    threads[i].in_use = false;
+    threads[i].finished = false;
+  }
+  
+  bool bit_thread_exists = false;
 
   //for every bit starting at the second bit
   for (int bit = 1; bit < 10; bit++) {
-    //create thread and check whether it has failed to do so
-    if (thread_count < 10) {
-      int creation = pthread_create (&threads[thread_count], NULL, flip, bit);
-      if (creation) {
-        fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
-        exit (EXIT_FAILURE);
-      }
-      printf ("Successfully created new thread%d\n", thread_count);
-    }
 
-    //wait till thread is complete before it continues the for loop
-    pthread_join (threads[thread_count], NULL);
-    thread_count++;
+    //iterate through all threads
+    for (int i = 0; i < NROF_THREADS; i++) {
+      //if thread for this bit already exists then move to next bit
+      if (bit_thread_exists) {
+        break;
+      }
+
+      //if thread is free, create the thread and check whether it succeeded
+      if (!threads[i].in_use) {
+        int creation = pthread_create (&threads[i].thread_id, NULL, flip, bit);
+        if (creation) {
+          fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+          exit (EXIT_FAILURE);
+        }
+        printf ("Successfully created new thread at index %d\n", i);
+        bit_thread_exists = true;
+        //else check whether thread is finished, then join the thread
+      } else {
+        if (threads[i].finished) {
+          pthread_join (threads[i].thread_id, NULL);
+          printf ("%lx: thread joined\n", pthread_self());
+        }
+      }
+    }
+    bit_thread_exists = false;
+
   }
 
   printBlacks (v);
   printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
-  printf ("amount of threads = %d\n", thread_count);
 
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
