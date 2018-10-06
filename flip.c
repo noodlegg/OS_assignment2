@@ -48,8 +48,6 @@ void flipper(uint128_t *v, int x){
       printf ("unset the bit\n");
     }
   }
-
-
 }
 
 int main (void)
@@ -57,8 +55,17 @@ int main (void)
   for(int x=1;x<10;x++){
     flipper(&v,x);
   }
+  printer(v);
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
   //  see bit_test() how to manipulate bits in a large integer)
   return (0);
+}
+
+void printer(v){
+  for(int x=1;x<10;x++){
+    if(BIT_IS_SET(v,x)){
+      printf("%d \n",x);
+    }
+  }
 }
