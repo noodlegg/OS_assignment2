@@ -39,7 +39,7 @@ int bit_test (uint128_t v){
   return v;
 }
 
-static void flipper(uint128_t v, int x){
+static void flip(uint128_t v, int x){
 
   if(BIT_IS_SET(v,x)){
     BIT_CLEAR(v,x);
@@ -54,8 +54,7 @@ int main (void)
 {
   uint128_t v;
   bit_test (v);
-
-
+  
   //iterate through every bit
   for (int mul = 1; mul < 5; mul++)
   {
