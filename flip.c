@@ -61,18 +61,19 @@ int flip (int bit) {
   for (int x = 1; x < NROF_PIECES; x++) {
     //if its a multiple of the bit then flip
     if ((x+1)%(bit+1) == 0) {
+      pthread_mutex_lock (&mutex);
       //printf("%d is multiple of %d so flip\n", x+1, bit+1);
       if (BIT_IS_SET (v,x)) {
         BIT_CLEAR (v,x);
       } else {
         BIT_SET (v,x);
       }
+      pthread_mutex_unlock (&mutex);
       //printf("flipped bit: %d\n", x);
     }
   }
-  //set thread to finished
+  //set thread to finished and unused
   threads[pthread_self()].finished = true;
-  threads[pthread_self()].in_use = false;
 }
 
 int main (void) {
@@ -99,7 +100,6 @@ int main (void) {
 
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[i].in_use) {
-        threads[i].finished = false;
         int creation = pthread_create (&threads[i].thread_id, NULL, flip, bit);
         if (creation) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
@@ -113,6 +113,8 @@ int main (void) {
         if (threads[i].finished) {
           pthread_join (threads[i].thread_id, NULL);
           printf ("%lx: thread joined\n", pthread_self());
+          threads[i].in_use = false;
+          threads[i].finished = false;
         }
       }
     }
