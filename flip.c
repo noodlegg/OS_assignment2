@@ -30,16 +30,16 @@
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
 static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
-uint128_t v = 0;
+uint128_t v;
 
-int bit_test (uint128_t v){
+int bit_test (void){
   // set all bits to 1
   v = ~0;
   printf ("v (all 1's) : %lx%016lx\n", HI(v), LO(v));
   return v;
 }
 
-int flip (uint128_t v, int x)
+int flip (int x)
 {
   if (BIT_IS_SET (v,x))
   {
@@ -69,7 +69,7 @@ void printBlacks (uint128_t v)
 int main (void)
 {
   printf ("v (before bit_test) : %lx%016lx\n", HI(v), LO(v));
-  bit_test (v);
+  bit_test ();
   printf ("v (before loop) : %lx%016lx\n", HI(v), LO(v));
 
   //for every bit starting at the second bit
@@ -82,7 +82,7 @@ int main (void)
       if ((x+1)%(bit+1) == 0)
       {
         //printf("%d is multiple of %d so flip\n", x+1, bit+1);
-        flip (v,x);
+        flip (x);
       }
     }
   }
