@@ -49,24 +49,27 @@ static void flip (uint128_t v, int x)
   {
     BIT_SET (v,x);
   }
-  printf("flipped bit: %d", x);
+  printf("flipped bit: %d\n", x);
 }
 
 int main (void)
 {
   uint128_t v;
   bit_test (v);
-  int bit = 1;  //is multiple of twos
+  int bit = 1;  //is multiple of twos initially
+
   //iterate through every bit
   for (int x=1; x<128; x++)
   {
     //if its a multiple for the bit then flip
     if (x%(bit+1) == 0)
     {
-      printf("%d is multiple of %d so flip\n", x, bit);
+      printf("%d is multiple of %d so flip\n", x, bit+1);
       flip (v,x);
     }
   }
+  printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
+
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
   //  see bit_test() how to manipulate bits in a large integer)
