@@ -52,26 +52,38 @@ static void flip (uint128_t v, int x)
   printf("flipped bit: %d\n", x);
 }
 
+void printBlacks (uint128_t v)
+{
+  for (int i = 0; i < 10; i++)
+  {
+    if (BIT_IS_SET (v, i))
+    {
+      printf("%dth bit is black (1)\n", i+1);
+    }
+  }
+}
+
 int main (void)
 {
   uint128_t v;
   bit_test (v);
 
   //for every bit starting at the second bit
-  for (int bit = 1; bit < 128; bit++)
+  for (int bit = 1; bit < 10; bit++)
   {
     //loop through the other bits for multiples
-    for (int x=1; x<128; x++)
+    for (int x = 1; x < 10; x++)
     {
       //if its a multiple of the bit then flip
-      if (x%(bit+1) == 0)
+      if ((x+1)%(bit+1) == 0)
       {
-        printf("%d is multiple of %d so flip\n", x, bit+1);
+        printf("%d is multiple of %d so flip\n", x+1, bit+1);
         flip (v,x);
       }
     }
   }
 
+  printBlacks (v);
   printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
 
   // TODO: start threads to flip the pieces and output the results
