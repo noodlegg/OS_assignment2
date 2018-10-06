@@ -30,7 +30,7 @@
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
 static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
-
+uint128_t v = 0;
 
 int bit_test (uint128_t v){
   // set all bits to 1
@@ -39,7 +39,7 @@ int bit_test (uint128_t v){
   return v;
 }
 
-static void flip (uint128_t v, int x)
+int flip (uint128_t v, int x)
 {
   if (BIT_IS_SET (v,x))
   {
@@ -49,7 +49,10 @@ static void flip (uint128_t v, int x)
   {
     BIT_SET (v,x);
   }
-  printf("flipped bit: %d\n", x);
+  //printf("flipped bit: %d\n", x);
+  printf ("v in flip) : %lx%016lx\n", HI(v), LO(v));
+
+  return v;
 }
 
 void printBlacks (uint128_t v)
@@ -65,8 +68,9 @@ void printBlacks (uint128_t v)
 
 int main (void)
 {
-  uint128_t v;
+  printf ("v (before bit_test) : %lx%016lx\n", HI(v), LO(v));
   bit_test (v);
+  printf ("v (before loop) : %lx%016lx\n", HI(v), LO(v));
 
   //for every bit starting at the second bit
   for (int bit = 1; bit < 10; bit++)
@@ -77,13 +81,13 @@ int main (void)
       //if its a multiple of the bit then flip
       if ((x+1)%(bit+1) == 0)
       {
-        printf("%d is multiple of %d so flip\n", x+1, bit+1);
+        //printf("%d is multiple of %d so flip\n", x+1, bit+1);
         flip (v,x);
       }
     }
   }
 
-  printBlacks (v);
+  //printBlacks (v);
   printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
 
   // TODO: start threads to flip the pieces and output the results
