@@ -75,25 +75,34 @@ void printBlacks (uint128_t v)
 int main (void)
 {
   bit_test ();
-  pthread_t thread1;
+
+  //create array of threads the size of the max amount of threads
+  pthread_t threads[NROF_THREADS];
+  int thread_count = 0;
 
   //for every bit starting at the second bit
   for (int bit = 1; bit < 10; bit++)
   {
     //create thread and check whether it has failed to do so
-    int creation = pthread_create (&thread1, NULL, flip, bit);
-    if (creation)
+    if (thread_count < 10)
     {
-      fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
-      exit (EXIT_FAILURE);
+      int creation = pthread_create (&threads[thread_count], NULL, flip, bit);
+      if (creation)
+      {
+        fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+        exit (EXIT_FAILURE);
+      }
+      printf ("Successfully created new thread%d\n", thread_count);
     }
 
     //wait till thread is complete before it continues the for loop
-    pthread_join (thread1, NULL);
+    pthread_join (threads[thread_count], NULL);
+    thread_count++;
   }
 
   printBlacks (v);
   printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
+  printf ("amount of threads = %d\n", thread_count);
 
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
