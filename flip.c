@@ -1,16 +1,16 @@
 /*
-* Operating Systems  [2INCO]  Practical Assignment
-* Threaded Application
-*
-* STUDENT_NAME_1 (STUDENT_NR_1)
-* STUDENT_NAME_2 (STUDENT_NR_2)
-*
-* Grading:
-* Students who hand in clean code that fully satisfies the minimum requirements will get an 8.
-* Extra steps can lead to higher marks because we want students to take the initiative.
-* Extra steps can be, for example, in the form of measurements added to your code, a formal
-* analysis of deadlock freeness etc.
-*/
+ * Operating Systems  [2INCO]  Practical Assignment
+ * Threaded Application
+ *
+ * STUDENT_NAME_1 (STUDENT_NR_1)
+ * STUDENT_NAME_2 (STUDENT_NR_2)
+ *
+ * Grading:
+ * Students who hand in clean code that fully satisfies the minimum requirements will get an 8.
+ * Extra steps can lead to higher marks because we want students to take the initiative.
+ * Extra steps can be, for example, in the form of measurements added to your code, a formal
+ * analysis of deadlock freeness etc.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,34 +33,39 @@ static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
 
 
 int bit_test (uint128_t v){
-  // set all bits to 1
-  v = ~0;
-  printf ("v (all 1's) : %lx%016lx\n", HI(v), LO(v));
-  return v;
+// set all bits to 1
+v = ~0;
+return v;
 }
 
 static void flipper(uint128_t v, int x){
-
-  if(BIT_IS_SET(v,x)){
-    BIT_CLEAR(v,x);
-  }
-  else{
-    BIT_SET(v,x);
-  }
+printf ("time to set bit\n");
+int q = x;
+for(int z=1; q<128;z++){
+q = x*z;
+if(BIT_IS_SET(v,q)){
+BIT_CLEAR(v,q);
+printf ("set the bit\n");
+}
+else{
+BIT_SET(v,q);
+printf ("unset the bit\n");
+}
+}
 
 }
 
 int main (void)
 {
-  uint128_t     v;
-  bit_test;
-  for(int x=0;x<HI(v);x++){
-    flipper(v,x);
-  }
-  // TODO: start threads to flip the pieces and output the results
-  // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
-  //  see bit_test() how to manipulate bits in a large integer)
+uint128_t     v;
+bit_test(v);
+for(int x=1;x<128;x++){
+flipper(v,x);
+}
+    // TODO: start threads to flip the pieces and output the results
+    // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
+    //  see bit_test() how to manipulate bits in a large integer)
 
-
-  return (0);
+printf ("unset the bit\n");
+    return (0);
 }
