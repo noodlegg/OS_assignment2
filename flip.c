@@ -64,7 +64,7 @@ int main (void)
       //if its a multiple for the bit then flip
       if (x%(mul+1) == 0)
       {
-        printf("%d is multiple of %d so flip\n", x, bit+1);
+        printf("%d is multiple of %d so flip\n", x, mul+1);
         flip (v,x);
       }
     }
