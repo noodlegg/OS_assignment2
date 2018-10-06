@@ -39,23 +39,33 @@ int bit_test (uint128_t v){
   return v;
 }
 
-static void flipper(uint128_t v, int x){
-
-  if(BIT_IS_SET(v,x)){
-    BIT_CLEAR(v,x);
+static void flip (uint128_t v, int x)
+{
+  if (BIT_IS_SET (v,x))
+  {
+    BIT_CLEAR (v,x);
   }
-  else{
-    BIT_SET(v,x);
+  else
+  {
+    BIT_SET (v,x);
   }
-
+  printf("flipped bit: %d", x);
 }
 
 int main (void)
 {
-  uint128_t     v;
-  bit_test;
-  for(int x=0;x<HI(v);x++){
-    flipper(v,x);
+  uint128_t v;
+  bit_test (v);
+  int bit = 1;  //is multiple of twos
+  //iterate through every bit
+  for (int x=1; x<128; x++)
+  {
+    //if its a multiple for the bit then flip
+    if (x%(bit+1) == 0)
+    {
+      printf("%d is multiple of %d so flip\n", x, bit);
+      flip (v,x);
+    }
   }
   // TODO: start threads to flip the pieces and output the results
   // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
