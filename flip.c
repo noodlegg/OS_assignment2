@@ -49,9 +49,7 @@ int flip (int x)
   {
     BIT_SET (v,x);
   }
-  //printf("flipped bit: %d\n", x);
-  printf ("v in flip) : %lx%016lx\n", HI(v), LO(v));
-
+  printf("flipped bit: %d\n", x);
   return v;
 }
 
@@ -68,9 +66,7 @@ void printBlacks (uint128_t v)
 
 int main (void)
 {
-  printf ("v (before bit_test) : %lx%016lx\n", HI(v), LO(v));
   bit_test ();
-  printf ("v (before loop) : %lx%016lx\n", HI(v), LO(v));
 
   //for every bit starting at the second bit
   for (int bit = 1; bit < 10; bit++)
@@ -81,13 +77,13 @@ int main (void)
       //if its a multiple of the bit then flip
       if ((x+1)%(bit+1) == 0)
       {
-        //printf("%d is multiple of %d so flip\n", x+1, bit+1);
+        printf("%d is multiple of %d so flip\n", x+1, bit+1);
         flip (x);
       }
     }
   }
 
-  //printBlacks (v);
+  printBlacks (v);
   printf ("v (after loop) : %lx%016lx\n", HI(v), LO(v));
 
   // TODO: start threads to flip the pieces and output the results
