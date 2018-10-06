@@ -99,6 +99,7 @@ int main (void) {
 
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[i].in_use) {
+        threads[i].finished = false;
         int creation = pthread_create (&threads[i].thread_id, NULL, flip, bit);
         if (creation) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
