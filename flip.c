@@ -20,6 +20,15 @@
 
 #include "uint128.h"
 #include "flip.h"
+
+typedef struct {
+  pthread_t                   thread_id;
+  int                         parameter;
+  bool                        finished;
+  int                         array_index;
+  bool			                  slot_used; //is the slot used (running or waiting to be joined)
+} THREAD_CONSTRUCT;
+
 // create a bitmask where bit at position n is set
 #define BITMASK(n)          (((uint128_t) 1) << (n))
 // check if bit n in v is set
@@ -29,43 +38,123 @@
 // clear bit n in v
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
-static pthread_mutex_t      mutex          = PTHREAD_MUTEX_INITIALIZER;
-uint128_t     v = 0;
+
+uint128_t     v;
 
 
 
-void flipper(int x){
-  printf ("time to set bit\n");
-  int q = x;
-  for(int z=1; q<10;z++){
-    q = (x*z);
-    if(BIT_IS_SET(v,q)){
-      BIT_CLEAR(v,q);
-      printf ("set the bit\n");
-    }
-    else{
-      BIT_SET(v,q);
-      printf ("unset the bit\n");
+void startThreat(int base, int index);
+void * flipping(void * arg);
+void print_buffer();
+
+int ints_in_buffer;
+
+static pthread_mutex_t       mutex[(NROF_PIECES/128)+1];
+
+THREAD_CONSTRUCT                thread_collection[NROF_THREADS];
+
+int main(void) {
+  ints_in_buffer = (NROF_PIECES/128) + 1;
+
+  //initialise mutexes
+  int mutex_index;
+  for (mutex_index = 0; mutex_index < ints_in_buffer; mutex_index++) {
+    pthread_mutex_init(&mutex[mutex_index], NULL);
+  }
+  int i;
+  for (i = 0; i < ints_in_buffer; i++) {
+    buffer[i] = ~0;
+  }
+
+  for (i = 0; i < NROF_THREADS; i++) {
+    thread_collection[i].slot_used = false;
+  }
+
+  int k; //number of threads started
+  k = 0;
+  int current_base;
+  current_base = 2;
+
+  while (k < NROF_THREADS && current_base < NROF_PIECES) {
+    startThreat(current_base,k);
+    k++;
+    current_base++;
+  }
+
+
+
+  bool found_base;
+  while (current_base < NROF_PIECES) { //until finished starting up threads...
+    for (i = 0; i < NROF_THREADS; i++) { //...find a thread that has finished and start a new one
+      if (thread_collection[i].finished = true) {
+        startThreat(current_base,i);
+        //    pthread_join ((thread_collection[i].thread_id), NULL);
+        //printf("2.5 \n");
+        thread_collection[i].slot_used = false;
+        current_base++;
+      }
+
     }
   }
-}
 
-int main (void)
-{
-  for(int x=1;x<10;x++){
-    flipper(x);
+  for (i = 0; i < NROF_THREADS; i++) { //join (and wait for) all the threads that are used
+    if (thread_collection[i].slot_used == true) {
+      pthread_join (thread_collection[i].thread_id, NULL);
+    }
   }
-  funclast(v);
-  // TODO: start threads to flip the pieces and output the results
-  // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
-  //  see bit_test() how to manipulate bits in a large integer)
+
+  print_buffer();
   return (0);
 }
 
-void funclast(uint128_t v){
-  for(int x=1;x<10;x++){
-    if(BIT_IS_SET(v,x)){
-      printf("%d \n",x);
+void startThreat(int base, int index) {
+  thread_collection[index].parameter = base;
+  thread_collection[index].finished = false;
+  thread_collection[index].array_index = index;
+  thread_collection[index].slot_used = true;
+  pthread_create (&thread_collection[index].thread_id, NULL,flipping, &thread_collection[index].array_index);
+}
+
+
+void * flipping(void * arg){
+  int *argi;
+  int base;
+  int multiple;
+  argi = (int *) arg;
+  int thread_index = *argi;
+  int current_base = thread_collection[thread_index].parameter;
+  int tracker = 2;
+  int old_base = current_base;
+  while (current_base <= NROF_PIECES) {
+    pthread_mutex_lock (&mutex[current_base/128]);
+    if(BIT_IS_SET(buffer[(current_base / 128)], (current_base % 128))){
+      BIT_CLEAR(buffer[(current_base / 128)], (current_base % 128));
+    }
+    else {
+      BIT_SET(buffer[(current_base / 128)], (current_base % 128));
+    }
+    pthread_mutex_unlock (&mutex[current_base/128]);
+    current_base = old_base * tracker;
+    tracker++;
+  }
+  thread_collection[thread_index].finished = true;
+  return 0;
+}
+
+
+
+void print_buffer() //for testing purposes, prints all the 64 bit ints in buffer
+{for(int x=0;x<((NROF_PIECES/128)+1);x++){
+BIT_SET(buffer[0],2);
+  for(int z=0;z<128;z++){
+    if(BIT_IS_SET(buffer[x],z)){
+      int q = z+(x*128);
+      if(q>NROF_PIECES){
+        break;
+      }
+      printf("%d \n",q);
     }
   }
+
+}
 }
