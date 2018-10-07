@@ -2,8 +2,8 @@
 * Operating Systems  [2INCO]  Practical Assignment
 * Threaded Application
 *
-* STUDENT_NAME_1 (STUDENT_NR_1)
-* STUDENT_NAME_2 (STUDENT_NR_2)
+* Thomas Gian (0995114)
+* Minjin Song (1194206)
 *
 * Grading:
 * Students who hand in clean code that fully satisfies the minimum requirements will get an 8.
@@ -48,7 +48,7 @@ void printBlacks (void) {
   for (int i = 0; i < buffer_amount; i++) {
     for (int j = 0; j < 128; j++) {
       black = (i * 128) + j;
-      if (BIT_IS_SET (buffer[i], j) && black > 0 && black <= NROF_PIECES) {
+      if (BIT_IS_SET (buffer[i], j) && black > 0 && black < NROF_PIECES) {
         printf("%d\n", black);
       }
     }
