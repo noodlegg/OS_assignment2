@@ -60,16 +60,10 @@ int main(void) {
   int mutex_index;
   for (mutex_index = 0; mutex_index < noofbits_buffer; mutex_index++) {
     pthread_mutex_init(&mutex[mutex_index], NULL);
-  }
-
-  int i;
-  //make all pieces black by flipping them
-  for (i = 0; i < noofbits_buffer; i++) {
     buffer[i] = ~0;
   }
 
-  //set all threads to not in use
-  for (i = 0; i < NROF_THREADS; i++) {
+  for (int i = 0; i < NROF_THREADS; i++) {
     threads[i].in_use = false;
   }
 
@@ -138,13 +132,17 @@ void * flipping(void * arg){
 
 
 
-void print_buffer(){ //for testing purposes, prints all the 64 bit ints in buffer
+void print_buffer(){  //for testing purposes, prints all the 64 bit ints in buffer
 for(int x=0;x<((NROF_PIECES/128)+1);x++){
   for(int z=0;z<128;z++){
     if(BIT_IS_SET(buffer[x],z)){
       int q = z+(x*128);
+      if(q>3000){
+        break;
+      }
       if(q < NROF_PIECES && q != 0){
       printf("%d \n",q);
+      amount++;
     }
     }
   }
