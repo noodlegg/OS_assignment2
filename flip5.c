@@ -39,7 +39,7 @@ typedef struct {
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
 
-uint128_t     v = 0;
+uint128_t     v;
 
 
 
@@ -102,6 +102,7 @@ int main(void) {
       pthread_join (thread_collection[i].thread_id, NULL);
     }
   }
+
   print_buffer();
   return (0);
 }
@@ -126,11 +127,11 @@ void * flipping(void * arg){
   int old_base = current_base;
   while (current_base <= NROF_PIECES) {
     pthread_mutex_lock (&mutex[current_base/128]);
-    if(BIT_IS_SET(buffer[(current_base / 128)], current_base % 128)){
-      BIT_SET(buffer[(current_base / 128)], current_base % 128);
+    if(BIT_IS_SET(buffer[(current_base / 128)], (current_base % 128))){
+      BIT_CLEAR(buffer[(current_base / 128)], (current_base % 128));
     }
     else {
-      BIT_CLEAR(buffer[(current_base / 128)], current_base % 128);
+      BIT_SET(buffer[(current_base / 128)], (current_base % 128));
     }
     pthread_mutex_unlock (&mutex[current_base/128]);
     current_base = old_base * tracker;
@@ -143,9 +144,10 @@ void * flipping(void * arg){
 
 
 void print_buffer() //for testing purposes, prints all the 64 bit ints in buffer
-{  for(int x=0;x<((NROF_PIECES/128)+1);x++){
+{for(int x=0;x<((NROF_PIECES/128)+1);x++){
+BIT_SET(buffer[0],2);
   for(int z=0;z<128;z++){
-    if(BIT_IS_SET(x,z)){
+    if(BIT_IS_SET(buffer[x],z)){
       int q = z+(x*128);
       printf("%d \n",q);
     }
