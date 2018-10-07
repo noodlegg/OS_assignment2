@@ -47,9 +47,9 @@ void printBlacks (void) {
   int black;
   for (int i = 0; i < buffer_amount; i++) {
     for (int j = 0; j < 128; j++) {
-      black = (i * 128) + j + 1;
+      black = (i * 128) + j;
       if (BIT_IS_SET (buffer[i], j) && black <= NROF_PIECES) {
-        printf("%dth bit is black (1)\n", black);
+        printf("%d bit is black (1)\n", black);
       }
     }
   }
@@ -69,8 +69,10 @@ void * flip (void * arg) {
     printf("%d is multiple of %d so flip\n", multiple, base);
     if (BIT_IS_SET (buffer[(multiple / 128)], multiple % 128)) {
       BIT_CLEAR (buffer[(multiple / 128)], multiple % 128);
+      printf("%d to white (0)\n", multiple);
     } else {
       BIT_SET (buffer[(multiple / 128)], multiple % 128);
+      printf("%d to black (1)\n", multiple);
     }
     pthread_mutex_unlock (&mutex[multiple / 128]);
     multiple += base;
@@ -98,7 +100,7 @@ int main (void) {
   bool bit_thread_exists = false;
 
   //for every bit starting at the second bit
-  for (int bit = 1; bit < NROF_PIECES; bit++) {
+  for (int bit = 2; bit < NROF_PIECES; bit++) {
 
     //iterate through all threads
     for (int t = 0; t < NROF_THREADS; t++) {
@@ -109,7 +111,7 @@ int main (void) {
 
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[t].in_use) {
-        threads[t].base = bit+1;
+        threads[t].base = bit;
         threads[t].index = t;
         threads[t].finished = false;
         int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
@@ -117,7 +119,7 @@ int main (void) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
           exit (EXIT_FAILURE);
         }
-        printf ("Successfully created new thread at index %d\n", t);
+        printf ("%lx: thread created\n", threads[t].thread_id);
         threads[t].in_use = true;
         bit_thread_exists = true;
         //else check whether thread is finished, then join the thread
@@ -140,7 +142,7 @@ int main (void) {
     pthread_join (threads[k].thread_id, NULL);
   }
 
-  //printBlacks ();
+  printBlacks ();
   for (int m = 0; m < buffer_amount; m++) {
     printf ("buffer%d (after loop) : %lx%016lx\n", m, HI(buffer[m]), LO(buffer[m]));
 
