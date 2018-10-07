@@ -37,6 +37,7 @@ typedef struct {
   pthread_t thread_id;
   bool finished;
   bool in_use;
+  int base;
 } THREAD_CONSTRUCT;
 
 THREAD_CONSTRUCT threads[NROF_THREADS];
@@ -49,15 +50,10 @@ void printBlacks (uint128_t v) {
   }
 }
 
-int bit_test (void) {
-  // set all bits to 1
-  v = ~0;
-  printf ("v (all 1's) : %lx%016lx\n", HI(v), LO(v));
-  return v;
-}
-
-int flip (int bit) {
-  int multiple = bit;
+void * flip (void * arg) {
+  printf("starting flip on thread%lx\n", pthread_self());
+  int multiple = threads[pthread_self()].base;
+  printf("thread base bit is %d\n", multiple);
   //loop through the other bits for multiples
   while (multiple <= NROF_PIECES) {
     pthread_mutex_lock (&mutex[multiple / 128]);
@@ -68,23 +64,24 @@ int flip (int bit) {
       BIT_SET (buffer[(multiple / 128)], multiple % 128);
     }
     pthread_mutex_unlock (&mutex[multiple / 128]);
-    multiple += bit;
+    multiple += multiple;
     //printf("flipped bit: %d\n", x);
   }
   //set thread to finished and unused
   threads[pthread_self()].finished = true;
-  printf ("thread done buffer : %lx%016lx\n", HI(buffer[(multiple / 128)]), LO(buffer[(multiple / 128)]));
-
 }
 
 int main (void) {
-  //bit_test ();
-  int buffer_amount = (NROF_PIECES / 64) + 1;
+  int buffer_amount = (NROF_PIECES / 128) + 1;
+  printf ("buffer0 before init : %lx%016lx\n", HI(buffer[0]), LO(buffer[0]));
+
   //initialise all mutexes and set all bits to 1
   for (int m = 0; m < buffer_amount; m++) {
     pthread_mutex_init (&mutex[m], NULL);
     buffer[m] = ~0;
   }
+  printf ("mutex and all bits init succeeded\n");
+
 
   //set all threads as unused
   for (int i = 0; i < NROF_THREADS; i++) {
@@ -92,6 +89,7 @@ int main (void) {
     threads[i].in_use = false;
     threads[i].finished = false;
   }
+  printf ("all threads set as unused\n");
 
   bool bit_thread_exists = false;
 
@@ -107,7 +105,8 @@ int main (void) {
 
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[t].in_use) {
-        int creation = pthread_create (&threads[t].thread_id, NULL, flip, bit);
+        threads[t].base = bit;
+        int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].base);
         if (creation) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
           exit (EXIT_FAILURE);
@@ -129,7 +128,7 @@ int main (void) {
 
   }
 
-  printBlacks (v);
+  //printBlacks (v);
   for (int m = 0; m < buffer_amount; m++) {
     printf ("buffer%d (after loop) : %lx%016lx\n", m, HI(buffer[m]), LO(buffer[m]));
 
