@@ -38,6 +38,7 @@ typedef struct {
   bool finished;
   bool in_use;
   int base;
+  int index;
 } THREAD_CONSTRUCT;
 
 THREAD_CONSTRUCT threads[NROF_THREADS];
@@ -51,9 +52,11 @@ void printBlacks (uint128_t v) {
 }
 
 void * flip (void * arg) {
-  printf("starting flip on thread%lx\n", pthread_self());
-  int multiple = threads[pthread_self()].base;
-  printf("thread base bit is %d\n", multiple);
+  int *argi;
+  int multiple;
+  argi = (int *) arg;
+  int thread_index = *argi;
+  multiple = threads[thread_index].base;
   //loop through the other bits for multiples
   while (multiple <= NROF_PIECES) {
     pthread_mutex_lock (&mutex[multiple / 128]);
@@ -68,19 +71,17 @@ void * flip (void * arg) {
     //printf("flipped bit: %d\n", x);
   }
   //set thread to finished and unused
-  threads[pthread_self()].finished = true;
+  threads[thread_index].finished = true;
 }
 
 int main (void) {
   int buffer_amount = (NROF_PIECES / 128) + 1;
-  printf ("buffer0 before init : %lx%016lx\n", HI(buffer[0]), LO(buffer[0]));
 
   //initialise all mutexes and set all bits to 1
   for (int m = 0; m < buffer_amount; m++) {
     pthread_mutex_init (&mutex[m], NULL);
     buffer[m] = ~0;
   }
-  printf ("mutex and all bits init succeeded\n");
 
 
   //set all threads as unused
@@ -89,7 +90,6 @@ int main (void) {
     threads[i].in_use = false;
     threads[i].finished = false;
   }
-  printf ("all threads set as unused\n");
 
   bool bit_thread_exists = false;
 
@@ -106,7 +106,8 @@ int main (void) {
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[t].in_use) {
         threads[t].base = bit;
-        int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].base);
+        threads[t].index = t;
+        int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
         if (creation) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
           exit (EXIT_FAILURE);
