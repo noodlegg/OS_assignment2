@@ -48,8 +48,8 @@ void printBlacks (void) {
   for (int i = 0; i < buffer_amount; i++) {
     for (int j = 0; j < 128; j++) {
       black = (i * 128) + j;
-      if (BIT_IS_SET (buffer[i], j) && black <= NROF_PIECES) {
-        printf("%d bit is black (1)\n", black);
+      if (BIT_IS_SET (buffer[i], j) && black > 0 && black <= NROF_PIECES) {
+        printf("%d bit is black\n", black);
       }
     }
   }
@@ -76,7 +76,6 @@ void * flip (void * arg) {
     }
     pthread_mutex_unlock (&mutex[multiple / 128]);
     multiple += base;
-    //printf("flipped bit: %d\n", x);
   }
   //set thread to finished and unused
   threads[thread_index].finished = true;
@@ -90,51 +89,46 @@ int main (void) {
     buffer[m] = ~0;
   }
 
-
   //set all threads as unused
   for (int i = 0; i < NROF_THREADS; i++) {
     threads[i].in_use = false;
     threads[i].finished = false;
   }
 
-  bool bit_thread_exists = false;
+  bool bit_thread_exists;
 
   //for every bit starting at the second bit
   for (int bit = 2; bit < NROF_PIECES; bit++) {
-
+    bit_thread_exists = false;
     //iterate through all threads
-    for (int t = 0; t < NROF_THREADS; t++) {
-      //if thread for this bit already exists then move to next bit
-      if (bit_thread_exists) {
-        break;
-      }
-
-      //if thread is free, create the thread and check whether it succeeded
-      if (!threads[t].in_use) {
-        threads[t].base = bit;
-        threads[t].index = t;
-        threads[t].finished = false;
-        int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
-        if (creation) {
-          fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
-          exit (EXIT_FAILURE);
+    while (!bit_thread_exists) {
+      for (int t = 0; t < NROF_THREADS; t++) {
+        //skip all iterations if thread has been created
+        if (bit_thread_exists) {
+          break;
         }
-        printf ("%lx: thread created\n", threads[t].thread_id);
-        threads[t].in_use = true;
-        bit_thread_exists = true;
-        //else check whether thread is finished, then join the thread
-      } else if (threads[t].finished) {
-        pthread_join (threads[t].thread_id, NULL);
-        printf ("%lx: thread joined\n", threads[t].thread_id);
-        threads[t].in_use = false;
-        //else if all threads are occupied and unfinished, wait for last thread
-      } else if (t+1 == NROF_THREADS){
-        pthread_join (threads[t].thread_id, NULL);
-        threads[t].in_use = false;
+        //check whether thread is finished, then join the thread
+        if (threads[t].finished) {
+          pthread_join (threads[t].thread_id, NULL);
+          threads[t].in_use = false;
+          threads[t].finished = false;
+          printf ("%lx: thread joined\n", threads[t].thread_id);
+        }
+        //if thread is free, create the thread and check whether it succeeded
+        if (!threads[t].in_use) {
+          threads[t].base = bit;
+          threads[t].index = t;
+          threads[t].in_use = true;
+          bit_thread_exists = true;
+          int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
+          if (creation) {
+            fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+            exit (EXIT_FAILURE);
+          }
+          printf ("%lx: thread created\n", threads[t].thread_id);
+        }
       }
     }
-    bit_thread_exists = false;
-
   }
 
   //wait for all threads to complete
