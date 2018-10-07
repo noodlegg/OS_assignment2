@@ -1,4 +1,4 @@
-/* 
+/*
  * Operating Systems  [2INC0]  Practical Assignment
  * Threaded application
  *
@@ -11,7 +11,7 @@
 #define _FLIP_H_
 
 #include "uint128.h"
- 
+
 /**
  * NROF_PIECES: size of the board; number of pieces to be flipped
  */
@@ -21,7 +21,7 @@
  * NROF_THREADS: number of threads that can be run in parallel
  * (value must be between 1 and ... (until you run out of system resources))
  */
-#define NROF_THREADS		10
+#define NROF_THREADS		30
 
 /**
  * buffer[]: datastructure of the pieces; each piece is represented by one bit

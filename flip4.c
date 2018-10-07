@@ -20,6 +20,15 @@
 
 #include "uint128.h"
 #include "flip.h"
+
+typedef struct {
+    pthread_t                   thread_id;
+    int                         parameter;
+    bool                        finished;
+    int                         array_index;
+    bool			                  slot_used; //is the slot used (running or waiting to be joined)
+} THREAD_CONSTRUCT;
+
 // create a bitmask where bit at position n is set
 #define BITMASK(n)          (((uint128_t) 1) << (n))
 // check if bit n in v is set
@@ -29,23 +38,20 @@
 // clear bit n in v
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
-static pthread_mutex_t       mutex[(NROF_PIECES/128)+1];
+
 uint128_t     v = 0;
 
-typedef struct {
-    pthread_t                   thread_id;
-    int                         parameter;
-    bool                        finished;
-    int                         array_index; //index of array when put in thread_collection
-    bool			slot_used; //is the slot used (running or waiting to be joined)
-} THREAD_CONSTRUCT;
-int ints_in_buffer;
-THREAD_CONSTRUCT                thread_collection[NROF_THREADS];
+
+
+void startThreat(int base, int index);
 void * flipping(void * arg);
 void print_buffer();
 
+int ints_in_buffer;
 
+static pthread_mutex_t       mutex[(NROF_PIECES/128)+1];
 
+THREAD_CONSTRUCT                thread_collection[NROF_THREADS];
 
 int main(void) {
   ints_in_buffer = (NROF_PIECES/128) + 1;
@@ -59,15 +65,17 @@ int main(void) {
 for (i = 0; i < ints_in_buffer; i++) {
     buffer[i] = ~0;
 }
+
 for (i = 0; i < NROF_THREADS; i++) {
         thread_collection[i].slot_used = false;
     }
-    int k; //number of threads started
+
+int k; //number of threads started
 k = 0;
 int current_base;
 current_base = 2;
-printf("1 \n");
-while (k < NROF_THREADS && current_base <= NROF_PIECES) {
+
+while (k < NROF_THREADS && current_base < NROF_PIECES) {
   startThreat(current_base,k);
         k++;
     current_base++;
@@ -75,34 +83,25 @@ while (k < NROF_THREADS && current_base <= NROF_PIECES) {
 
 
 
-printf("2 \n");
 bool found_base;
-printf("2.2 \n");
-while (current_base <= NROF_PIECES) { //until finished starting up threads...
+while (current_base < NROF_PIECES) { //until finished starting up threads...
     for (i = 0; i < NROF_THREADS; i++) { //...find a thread that has finished and start a new one
-        if (thread_collection[i].finished == true) { //found finished thread
-            pthread_join (thread_collection[i].thread_id, NULL);
-            thread_collection[i].slot_used = false;
-
-            //search for next suitable (prime) base
-            found_base = false;
-            while (k < NROF_THREADS && current_base <= NROF_PIECES) {
-              startThreat(current_base,k);
-                    k++;
-                current_base++;
+        if (thread_collection[i].finished = true) {
+          startThreat(current_base,i);
+        //    pthread_join ((thread_collection[i].thread_id), NULL);
+            //printf("2.5 \n");
+      thread_collection[i].slot_used = false;
+               current_base++;
             }
-        }
+
     }
 }
-printf("3 \n");
 
 for (i = 0; i < NROF_THREADS; i++) { //join (and wait for) all the threads that are used
     if (thread_collection[i].slot_used == true) {
         pthread_join (thread_collection[i].thread_id, NULL);
     }
 }
-printf("4 \n");
-
 print_buffer();
 return (0);
 }
@@ -142,13 +141,13 @@ return 0;
 
 
 void print_buffer() //for testing purposes, prints all the 64 bit ints in buffer
-{
-  for(int x=0;x<((NROF_PIECES/128)+1);x++){
+{  for(int x=0;x<((NROF_PIECES/128)+1);x++){
     for(int z=0;z<128;z++){
     if(BIT_IS_SET(x,z)){
       int q = z+(x*128);
       printf("%d \n",q);
     }
   }
+
 }
 }
