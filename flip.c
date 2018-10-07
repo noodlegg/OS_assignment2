@@ -55,14 +55,12 @@ THREAD_STRUCT                threads[NROF_THREADS];
 
 int main(void) {
   noofbits_buffer = (NROF_PIECES/128) + 1;
-
   //initialise mutexes
   int mutex_index;
   for (mutex_index = 0; mutex_index < noofbits_buffer; mutex_index++) {
     pthread_mutex_init(&mutex[mutex_index], NULL);
     buffer[mutex_index] = ~0;
   }
-
   for (int i = 0; i < NROF_THREADS; i++) {
     threads[i].in_use = false;
   }
@@ -79,7 +77,7 @@ int main(void) {
   }
 
   while (flip_multiplier < NROF_PIECES) { //flips until flip_multiplier reaches NROF_PIECES
-    for (i = 0; i < NROF_THREADS; i++) { //checks if a thread is finished and gives new order if that is the case.
+    for (int i = 0; i < NROF_THREADS; i++) { //checks if a thread is finished and gives new order if that is the case.
       if (threads[i].finished == true) {
         startThreat(flip_multiplier,i);
         //printf("2.5 \n");
@@ -89,7 +87,7 @@ int main(void) {
 
     }
   }
-  for (i = 0; i < NROF_THREADS; i++) { //join (and wait for) all the threads that are used
+  for (int i = 0; i < NROF_THREADS; i++) { //join (and wait for) all the threads that are used
     if (threads[i].in_use == true) {
       pthread_join (threads[i].thread_id, NULL);
     }
@@ -105,7 +103,6 @@ void startThreat(int base, int index) {
   threads[index].in_use = true;
   pthread_create (&threads[index].thread_id, NULL,flipping, &threads[index].array_index);
 }
-
 
 void * flipping(void * arg){
   int *argi;
@@ -130,15 +127,13 @@ void * flipping(void * arg){
   return 0;
 }
 
-
-
 void print_buffer(){  //for testing purposes, prints all the 64 bit ints in buffer
 int q;
 for(int x=0;x<((NROF_PIECES/128)+1);x++){
   for(int z=0;z<128;z++){
     q= z+(x*128);
     if(BIT_IS_SET(buffer[x],z)&&(q>0) &&(q <NROF_PIECES)){
-      printf("%d \n",q);
+      printf("%d\n",q);
     }
     }
   }
