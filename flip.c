@@ -30,7 +30,7 @@
 #define BIT_CLEAR(v,n)      ((v) =  (v) & ~BITMASK(n))
 // declare a mutex, and it is initialized as well
 static pthread_mutex_t      mutex[NROF_PIECES/128 + 1]; //array of mutexes
-uint128_t v;
+int buffer_amount = (NROF_PIECES / 128) + 1;
 
 //structure to keep track of all threads
 typedef struct {
@@ -43,40 +43,45 @@ typedef struct {
 
 THREAD_CONSTRUCT threads[NROF_THREADS];
 
-void printBlacks (uint128_t v) {
-  for (int i = 0; i < 10; i++) {
-    if (BIT_IS_SET (v, i)) {
-      printf("%dth bit is black (1)\n", i+1);
+void printBlacks (void) {
+  int black;
+  for (int i = 0; i < buffer_amount; i++) {
+    for (int j = 0; j < 128; j++) {
+      black = (i * 128) + j + 1;
+      if (BIT_IS_SET (buffer[i], j) && black <= NROF_PIECES) {
+        printf("%dth bit is black (1)\n", black);
+      }
     }
   }
 }
 
 void * flip (void * arg) {
   int *argi;
+  int base;
   int multiple;
   argi = (int *) arg;
   int thread_index = *argi;
-  multiple = threads[thread_index].base;
+  base = threads[thread_index].base;
+  multiple = base;
   //loop through the other bits for multiples
   while (multiple <= NROF_PIECES) {
     pthread_mutex_lock (&mutex[multiple / 128]);
-    //printf("%d is multiple of %d so flip\n", x+1, bit+1);
+    printf("%d is multiple of %d so flip\n", multiple, base);
     if (BIT_IS_SET (buffer[(multiple / 128)], multiple % 128)) {
       BIT_CLEAR (buffer[(multiple / 128)], multiple % 128);
     } else {
       BIT_SET (buffer[(multiple / 128)], multiple % 128);
     }
     pthread_mutex_unlock (&mutex[multiple / 128]);
-    multiple += multiple;
+    multiple += base;
     //printf("flipped bit: %d\n", x);
   }
   //set thread to finished and unused
   threads[thread_index].finished = true;
+  return 0;
 }
 
 int main (void) {
-  int buffer_amount = (NROF_PIECES / 128) + 1;
-
   //initialise all mutexes and set all bits to 1
   for (int m = 0; m < buffer_amount; m++) {
     pthread_mutex_init (&mutex[m], NULL);
@@ -105,8 +110,9 @@ int main (void) {
 
       //if thread is free, create the thread and check whether it succeeded
       if (!threads[t].in_use) {
-        threads[t].base = bit;
+        threads[t].base = bit+1;
         threads[t].index = t;
+        threads[t].finished = false;
         int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
         if (creation) {
           fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
@@ -116,20 +122,26 @@ int main (void) {
         threads[t].in_use = true;
         bit_thread_exists = true;
         //else check whether thread is finished, then join the thread
-      } else {
-        if (threads[t].finished) {
-          pthread_join (threads[t].thread_id, NULL);
-          printf ("%lx: thread joined\n", pthread_self());
-          threads[t].in_use = false;
-          threads[t].finished = false;
-        }
+      } else if (threads[t].finished) {
+        pthread_join (threads[t].thread_id, NULL);
+        printf ("%lx: thread joined\n", pthread_self());
+        threads[t].in_use = false;
+        //else if all threads are occupied and unfinished, wait for last thread
+      } else if (t+1 == NROF_THREADS){
+        pthread_join (threads[t].thread_id, NULL);
+        threads[t].in_use = false;
       }
     }
     bit_thread_exists = false;
 
   }
 
-  //printBlacks (v);
+  //wait for all threads to complete
+  for (int k = 0; k < NROF_THREADS; k++) {
+    pthread_join (threads[k].thread_id, NULL);
+  }
+
+  //printBlacks ();
   for (int m = 0; m < buffer_amount; m++) {
     printf ("buffer%d (after loop) : %lx%016lx\n", m, HI(buffer[m]), LO(buffer[m]));
 
