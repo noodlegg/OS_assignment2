@@ -136,7 +136,7 @@ void print_buffer(){  //for testing purposes, prints all the 64 bit ints in buff
 int q;
 for(int x=0;x<((NROF_PIECES/128)+1);x++){
   for(int z=0;z<128;z++){
-    q=q = z+(x*128);
+    q= z+(x*128);
     if(BIT_IS_SET(buffer[x],z)&&(black>0) &&(black <NROF_PIECES)){
       printf("%d \n",q);
     }
