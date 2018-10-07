@@ -49,7 +49,7 @@ void printBlacks (void) {
     for (int j = 0; j < 128; j++) {
       black = (i * 128) + j;
       if (BIT_IS_SET (buffer[i], j) && black > 0 && black <= NROF_PIECES) {
-        printf("%d bit is black\n", black);
+        printf("%d\n", black);
       }
     }
   }
@@ -66,13 +66,10 @@ void * flip (void * arg) {
   //loop through the other bits for multiples
   while (multiple <= NROF_PIECES) {
     pthread_mutex_lock (&mutex[multiple / 128]);
-    printf("%d is multiple of %d so flip\n", multiple, base);
     if (BIT_IS_SET (buffer[(multiple / 128)], multiple % 128)) {
       BIT_CLEAR (buffer[(multiple / 128)], multiple % 128);
-      printf("%d to white (0)\n", multiple);
     } else {
       BIT_SET (buffer[(multiple / 128)], multiple % 128);
-      printf("%d to black (1)\n", multiple);
     }
     pthread_mutex_unlock (&mutex[multiple / 128]);
     multiple += base;
@@ -112,7 +109,6 @@ int main (void) {
           pthread_join (threads[t].thread_id, NULL);
           threads[t].in_use = false;
           threads[t].finished = false;
-          printf ("%lx: thread joined\n", threads[t].thread_id);
         }
         //if thread is free, create the thread and check whether it succeeded
         if (!threads[t].in_use) {
@@ -125,7 +121,6 @@ int main (void) {
             fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
             exit (EXIT_FAILURE);
           }
-          printf ("%lx: thread created\n", threads[t].thread_id);
         }
       }
     }
@@ -137,15 +132,5 @@ int main (void) {
   }
 
   printBlacks ();
-  for (int m = 0; m < buffer_amount; m++) {
-    printf ("buffer%d (after loop) : %lx%016lx\n", m, HI(buffer[m]), LO(buffer[m]));
-
-  }
-
-  // TODO: start threads to flip the pieces and output the results
-  // (see thread_test() and thread_mutex_test() how to use threads and mutexes,
-  //  see bit_test() how to manipulate bits in a large integer)
-
-
   return (0);
 }
