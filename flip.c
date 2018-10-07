@@ -60,7 +60,7 @@ int main(void) {
   int mutex_index;
   for (mutex_index = 0; mutex_index < noofbits_buffer; mutex_index++) {
     pthread_mutex_init(&mutex[mutex_index], NULL);
-    buffer[i] = ~0;
+    buffer[mutex_index] = ~0;
   }
 
   for (int i = 0; i < NROF_THREADS; i++) {
@@ -137,7 +137,7 @@ int q;
 for(int x=0;x<((NROF_PIECES/128)+1);x++){
   for(int z=0;z<128;z++){
     q= z+(x*128);
-    if(BIT_IS_SET(buffer[x],z)&&(black>0) &&(black <NROF_PIECES)){
+    if(BIT_IS_SET(buffer[x],z)&&(q>0) &&(q <NROF_PIECES)){
       printf("%d \n",q);
     }
     }
