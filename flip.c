@@ -91,7 +91,6 @@ int main (void) {
 
   //set all threads as unused
   for (int i = 0; i < NROF_THREADS; i++) {
-    threads[i].thread_id = i;
     threads[i].in_use = false;
     threads[i].finished = false;
   }
@@ -124,7 +123,7 @@ int main (void) {
         //else check whether thread is finished, then join the thread
       } else if (threads[t].finished) {
         pthread_join (threads[t].thread_id, NULL);
-        printf ("%lx: thread joined\n", pthread_self());
+        printf ("%lx: thread joined\n", threads[t].thread_id);
         threads[t].in_use = false;
         //else if all threads are occupied and unfinished, wait for last thread
       } else if (t+1 == NROF_THREADS){
