@@ -128,7 +128,9 @@ int main (void) {
 
   //wait for all threads to complete
   for (int k = 0; k < NROF_THREADS; k++) {
-    pthread_join (threads[k].thread_id, NULL);
+    if (threads[k].in_use) {
+      pthread_join (threads[k].thread_id, NULL);
+    }
   }
 
   printBlacks ();
