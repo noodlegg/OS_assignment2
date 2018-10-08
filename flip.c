@@ -96,30 +96,44 @@ int main (void) {
 
   //for every bit starting at the second bit
   for (int bit = 2; bit < NROF_PIECES; bit++) {
-    bit_thread_exists = false;
-    //iterate through all threads
-    while (!bit_thread_exists) {
-      for (int t = 0; t < NROF_THREADS; t++) {
-        //skip all iterations if thread has been created
-        if (bit_thread_exists) {
-          break;
-        }
-        //check whether thread is finished, then join the thread
-        if (threads[t].finished) {
-          pthread_join (threads[t].thread_id, NULL);
-          threads[t].in_use = false;
-          threads[t].finished = false;
-        }
-        //if thread is free, create the thread and check whether it succeeded
-        if (!threads[t].in_use) {
-          threads[t].base = bit;
-          threads[t].index = t;
-          threads[t].in_use = true;
-          bit_thread_exists = true;
-          int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
-          if (creation) {
-            fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
-            exit (EXIT_FAILURE);
+    //if there is only one thread then skip the loops for all threads
+    if (NROF_THREADS == 1) {
+      //if thread is free, create the thread and check whether it succeeded
+      threads[0].base = bit;
+      threads[0].index = 0;
+      int creation = pthread_create (&threads[0].thread_id, NULL, flip, &threads[0].index);
+      if (creation) {
+        fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+        exit (EXIT_FAILURE);
+      }
+      pthread_join (threads[0].thread_id, NULL);
+      //else include checks for all threads
+    } else {
+      bit_thread_exists = false;
+      //iterate through all threads
+      while (!bit_thread_exists) {
+        for (int t = 0; t < NROF_THREADS; t++) {
+          //skip all iterations if thread has been created
+          if (bit_thread_exists) {
+            break;
+          }
+          //check whether thread is finished, then join the thread
+          if (threads[t].finished) {
+            pthread_join (threads[t].thread_id, NULL);
+            threads[t].in_use = false;
+            threads[t].finished = false;
+          }
+          //if thread is free, create the thread and check whether it succeeded
+          if (!threads[t].in_use) {
+            threads[t].base = bit;
+            threads[t].index = t;
+            threads[t].in_use = true;
+            bit_thread_exists = true;
+            int creation = pthread_create (&threads[t].thread_id, NULL, flip, &threads[t].index);
+            if (creation) {
+              fprintf (stderr, "Error: pthread_create() return code: %d\n", creation);
+              exit (EXIT_FAILURE);
+            }
           }
         }
       }
