@@ -2,8 +2,8 @@
 * Operating Systems  [2INCO]  Practical Assignment
 * Threaded Application
 *
-* STUDENT_NAME_1 (STUDENT_NR_1)
-* STUDENT_NAME_2 (STUDENT_NR_2)
+* STUDENT_NAME_1 (Dennis Rizvic)
+* STUDENT_NAME_2 (Hans Chia)
 *
 * Grading:
 * Students who hand in clean code that fully satisfies the minimum requirements will get an 8.
@@ -42,7 +42,7 @@ typedef struct {
 uint128_t     v;
 
 
-
+void *shortflip(int flip_multiplier);
 void startThreat(int base, int index);
 void * flipping(void * arg);
 void print_buffer();
@@ -54,7 +54,9 @@ static pthread_mutex_t       mutex[(NROF_PIECES/128)+1];
 THREAD_STRUCT                threads[NROF_THREADS];
 
 int main(void) {
+  int flip_multiplier = 2;
   noofbits_buffer = (NROF_PIECES/128) + 1;
+  if(NROF_THREADS>1){
   //initialise mutexes
   int mutex_index;
   for (mutex_index = 0; mutex_index < noofbits_buffer; mutex_index++) {
@@ -67,7 +69,7 @@ int main(void) {
 
   int k; //number of threads started
   k = 0;
-  int flip_multiplier = 2; //integer that gives the muliplier for the pieces to be flipped
+   //integer that gives the muliplier for the pieces to be flipped
 
   //creates threads until max number of threads or pieces has been reached
   while (k < NROF_THREADS && flip_multiplier < NROF_PIECES) {
@@ -92,6 +94,18 @@ int main(void) {
       pthread_join (threads[i].thread_id, NULL);
     }
   }
+}
+  else{
+    for (int x = 0; x < noofbits_buffer; x++) {
+      buffer[x] = ~0;
+    }
+  while (flip_multiplier < NROF_PIECES) {
+    pthread_t th1;
+    pthread_create(&th1,NULL,shortflip,flip_multiplier);
+    pthread_join(th1, NULL);
+    flip_multiplier++;
+  }
+}
   print_buffer();
   return (0);
 }
@@ -125,6 +139,23 @@ void * flipping(void * arg){
   }
   threads[thread_index].finished = true;
   return 0;
+}
+
+void *shortflip(int flip_multiplier){
+  int old_base = flip_multiplier;
+  while (flip_multiplier < NROF_PIECES) {
+    pthread_mutex_lock (&mutex[flip_multiplier/128]);
+    if(BIT_IS_SET(buffer[(flip_multiplier / 128)], (flip_multiplier % 128))){
+      //printf("buffer %d, flipped bit number %d to white. \n",flip_multiplier / 128, flip_multiplier % 128);
+      BIT_CLEAR(buffer[(flip_multiplier / 128)], (flip_multiplier % 128));
+    }
+    else {
+      //printf("buffer %d, flipped bit number %d to black. \n",flip_multiplier / 128, flip_multiplier % 128);
+      BIT_SET(buffer[(flip_multiplier / 128)], (flip_multiplier % 128));
+    }
+    pthread_mutex_unlock (&mutex[flip_multiplier/128]);
+    flip_multiplier += old_base;
+  }
 }
 
 void print_buffer(){  //for testing purposes, prints all the 64 bit ints in buffer
